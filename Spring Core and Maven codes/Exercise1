@@ -1,0 +1,62 @@
+Exercise 1: Configuring a Basic Spring Application
+1.Create a Maven Project
+•	Project Name: LibraryManagement
+•	Project Structure:
+LibraryManagement/
+			src/main/java
+src/main/resources
+ pom.xml
+________________________________________
+2.Add Spring Core Dependencies in pom.xml
+<dependencies>
+  <!-- Spring Core -->
+  <dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-context</artifactId>
+    <version>5.3.30</version>
+  </dependency>
+</dependencies>
+________________________________________
+3.Configure the Application Context
+•	Create src/main/resources/applicationContext.xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd">
+  <bean id="bookRepository" class="com.library.repository.BookRepository"/>
+  <bean id="bookService" class="com.library.service.BookService"/>
+</beans>
+________________________________________
+4.Create the Service and Repository Classes
+BookRepository
+package com.library.repository;
+public class BookRepository {
+    public void saveBook(String bookName) {
+        System.out.println("Saving book: " + bookName);
+    }
+}
+BookService
+package com.library.service;
+public class BookService {
+    public void addBook(String bookName) {
+        System.out.println("Adding book: " + bookName);
+    }
+}
+________________________________________
+5.Run the Application
+LibraryManagementApplication.java
+package com.library;
+import com.library.service.BookService;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+public class LibraryManagementApplication {
+    public static void main(String[] args) {
+        ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+        BookService bookService = (BookService) context.getBean("bookService");
+        bookService.addBook("Spring Core And Maven");
+    }
+}
+
+
+
+
