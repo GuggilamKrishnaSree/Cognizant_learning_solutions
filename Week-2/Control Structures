@@ -1,0 +1,93 @@
+Scenario1 : The bank wants to apply a discount to loan interest rates for customers above 60 years old.
+Question : Write a PL/SQL block that loops through all customers, checks their age, and if they are above 60, apply a 1% discount to their current loan interest rates.
+Answer:
+Assumption: 
+1.There is a table Cutomers with columns
+              1. CustomerID (NUMBER)
+              2. Name (VARCHAR2)
+              3. DOB (DATE)
+2.There is a table Loans with columns
+              1. LoanID (NUMBER)
+              2. CustomerID (NUMBER)
+              3. InterestRate (NUMBER)
+
+PL/SQL Code:
+DECLARE
+  CURSOR senior_customers IS
+    SELECT c.CustomerID, l.LoanID, l.InterestRate
+    FROM Customers c
+    JOIN Loans l ON c.CustomerID = l.CustomerID
+    WHERE MONTHS_BETWEEN(SYSDATE, c.DOB)/12 > 60;
+
+BEGIN
+  FOR cust IN senior_customers LOOP
+    UPDATE Loans
+    SET InterestRate = InterestRate - 1
+    WHERE LoanID = cust.LoanID;
+
+    DBMS_OUTPUT.PUT_LINE('Updated interest rate for LoanID: ' || cust.LoanID);
+  END LOOP;
+
+  COMMIT;
+END;
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Scenario2: A customer can be promoted to VIP status based on their balance.
+Question: Write a PL/SQL block that iterates through all customers and sets a flag IsVIP to TRUE for those with a balance over $10,000.
+
+Assumptions:
+The Customers table contains
+  1.CustomerID (NUMBER)
+  2.Balance (NUMBER)
+  3.IsVIP (CHAR or BOOLEAN or VARCHAR2)
+
+PL/SQL Code:
+DECLARE
+  CURSOR high_balance_customers IS
+    SELECT CustomerID, Balance
+    FROM Customers
+    WHERE Balance > 10000;
+
+BEGIN
+  FOR cust IN high_balance_customers LOOP
+    UPDATE Customers
+    SET IsVIP = 'TRUE'
+    WHERE CustomerID = cust.CustomerID;
+
+    DBMS_OUTPUT.PUT_LINE('Customer ' || cust.CustomerID || ' promoted to VIP status.');
+  END LOOP;
+
+  COMMIT;
+END;
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+Scenario3 : The bank wants to send reminders to customers whose loans are due within the next 30 days.
+Question: Write a PL/SQL block that fetches all loans due in the next 30 days and prints a reminder message for each customer.
+
+Assumptions:
+1. The Loans table includes:
+   1. LoanID (NUMBER)
+   2. CustomerID (NUMBER)
+   3. DueDate (DATE)
+2. The Customers table includes:
+  1. customerID (NUMBER)
+  2. Name (VARCHAR2)
+
+PL/SQL Code:
+DECLARE
+  CURSOR upcoming_loans IS
+    SELECT l.LoanID, l.DueDate, c.Name
+    FROM Loans l
+    JOIN Customers c ON l.CustomerID = c.CustomerID
+    WHERE l.DueDate BETWEEN SYSDATE AND SYSDATE + 30;
+
+BEGIN
+  FOR loan_rec IN upcoming_loans LOOP
+    DBMS_OUTPUT.PUT_LINE('Reminder: Loan ID ' || loan_rec.LoanID || 
+                         ' for customer ' || loan_rec.Name || 
+                         ' is due on ' || TO_CHAR(loan_rec.DueDate, 'DD-MON-YYYY'));
+  END LOOP;
+END;
+
+
+
