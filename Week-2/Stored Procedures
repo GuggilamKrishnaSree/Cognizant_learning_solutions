@@ -1,0 +1,96 @@
+Scenario 1: The bank needs to process monthly interest for all savings accounts.
+Question: Write a stored procedure ProcessMonthlyInterest that calculates and updates the balance of all savings accounts by applying an interest rate of 1% to the current balance.
+
+Assumptions:
+Table Accounts contains:
+   1.AccountID (NUMBER)
+   2.AccountType (VARCHAR2) - ("SAVINGS","CURRENT",etc)
+   3.Balance (NUMBER)
+
+Strored Procedure:
+CREATE OR REPLACE PROCEDURE ProcessMonthlyInterest AS
+BEGIN
+  UPDATE Accounts
+  SET Balance = Balance + (Balance * 0.01)
+  WHERE AccountType = 'SAVINGS';
+
+  DBMS_OUTPUT.PUT_LINE('Monthly interest applied to all savings accounts.');
+  
+  COMMIT;
+END;
+-----------------------------------------------------------------------------------------------------------------------------------------
+Scenario 2: The bank wants to implement a bonus scheme for employees based on their performance.
+Question: Write a stored procedure UpdateEmployeeBonus that updates the salary of employees in a given department by adding a bonus percentage passed as a parameter.
+
+Assumptions:
+Table Employees contains:
+   1.EmployeeID (NUMBER)
+   2.DepartmentID (NUMBER)
+   3.Salary (NUMBER)
+
+Stored Procedure:
+CREATE OR REPLACE PROCEDURE UpdateEmployeeBonus(
+  dept_id IN NUMBER,
+  bonus_pct IN NUMBER
+) AS
+BEGIN
+  UPDATE Employees
+  SET Salary = Salary + (Salary * bonus_pct / 100)
+  WHERE DepartmentID = dept_id;
+
+  DBMS_OUTPUT.PUT_LINE('Bonus of ' || bonus_pct || '% applied to Department ID: ' || dept_id);
+
+  COMMIT;
+END;
+--------------------------------------------------------------------------------------------------------------------------------------------
+Scenario 3: Customers should be able to transfer funds between their accounts.
+Question: Write a stored procedure TransferFunds that transfers a specified amount from one account to another, checking that the source account has sufficient balance before making the transfer.
+
+Assumptions:
+Table Accounts contains:
+  1. AccountID (NUMBER)
+  2. Balance (NUMBER)
+
+Stored Procedure:
+CREATE OR REPLACE PROCEDURE TransferFunds(
+  from_account IN NUMBER,
+  to_account IN NUMBER,
+  amount IN NUMBER
+) AS
+  insufficient_balance EXCEPTION;
+  current_balance NUMBER;
+BEGIN
+  SELECT Balance INTO current_balance
+  FROM Accounts
+  WHERE AccountID = from_account;
+
+  IF current_balance < amount THEN
+    RAISE insufficient_balance;
+  END IF;
+
+UPDATE Accounts
+  SET Balance = Balance - amount
+  WHERE AccountID = from_account;
+
+  UPDATE Accounts
+  SET Balance = Balance + amount
+  WHERE AccountID = to_account;
+
+  DBMS_OUTPUT.PUT_LINE('Transferred ' || amount || 
+                       ' from Account ' || from_account || 
+                       ' to Account ' || to_account);
+
+  COMMIT;
+
+EXCEPTION
+  WHEN insufficient_balance THEN
+    DBMS_OUTPUT.PUT_LINE('Error: Insufficient balance in Account ' || from_account);
+    ROLLBACK;
+  WHEN NO_DATA_FOUND THEN
+    DBMS_OUTPUT.PUT_LINE('Error: One or both account IDs not found.');
+    ROLLBACK;
+  WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+    ROLLBACK;
+END;
+
